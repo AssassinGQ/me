@@ -1,16 +1,16 @@
 # 补录引导
 
-多日补录模式。**严格逐天进行，一天聊完再聊下一天。**
+多日补录模式。**逐天进行，每天逐列确认。**
 
 所有提问必须使用 AskUserQuestion 工具。用户通过选项或 Other 输入自由文本回答。
+
+补录模式比单日模式更轻量——合并部分列，减少提问次数。
 
 ## 流程
 
 对每一天重复以下步骤，处理完一天再进入下一天：
 
-### Step 1: 开始当天
-
-调用 AskUserQuestion：
+### Step 1: 概括
 
 ```json
 {
@@ -18,7 +18,7 @@
     "question": "{date}（{weekday}）那天工作上最值得记的是什么？",
     "header": "{date}",
     "options": [
-      {"label": "让我说说...", "description": "选择此项后输入你的内容"},
+      {"label": "让我说说...", "description": "选择后输入内容"},
       {"label": "没啥特别的", "description": "普通的一天"},
       {"label": "不太记得了", "description": "回忆不起来"}
     ],
@@ -27,31 +27,45 @@
 }
 ```
 
-用户选择 "让我说说..." 时会在 Other 里输入具体内容。提取用户的回答作为 summary。
+用户选 "没啥特别的" 或 "不太记得了"，跳到 Step 4 直接确认。
 
-### Step 2: 追问（可选）
-
-如果 Step 1 用户选了 "没啥特别的" 或 "不太记得了"，跳过追问直接确认。
-
-如果用户提供了具体内容，且信息不够丰富，调用 AskUserQuestion 追问 1 个方向：
+### Step 2: 类型 + 重要度（合并一问）
 
 ```json
 {
   "questions": [{
-    "question": "那天最大的进展或卡点是什么？",
-    "header": "追问",
+    "question": "工作类型和重要程度？",
+    "header": "类型",
     "options": [
-      {"label": "让我补充...", "description": "选择后输入详情"},
-      {"label": "就这些了", "description": "不用追问了"}
+      {"label": "开发 普通", "description": "日常写代码，没什么特别的"},
+      {"label": "开发 有推进", "description": "推动了项目进度"},
+      {"label": "会议", "description": "主要在开会"},
+      {"label": "其他", "description": "选择后说明类型和重要度"}
     ],
     "multiSelect": false
   }]
 }
 ```
 
-### Step 3: 确认当天
+从用户选择中提取 category 和 impact。
 
-调用 AskUserQuestion 展示整理后的记录：
+### Step 3: 项目（可选追问）
+
+```json
+{
+  "questions": [{
+    "question": "哪个项目？",
+    "header": "项目",
+    "options": [
+      {"label": "让我输入...", "description": "输入项目名称"},
+      {"label": "跳过", "description": "不填"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+### Step 4: 确认当天
 
 ```json
 {
@@ -71,7 +85,8 @@
 
 ## 规则
 
-- 所有提问用 AskUserQuestion，不要输出纯文本问题
-- 一天一天来，不要批量问多天
-- category/impact/tags 自动推断，信息不足时留空
-- 用户说 "都一样"/"没啥" 也要记录，不能跳过
+- 所有提问用 AskUserQuestion
+- 一天一天来，不批量问多天
+- 补录模式精简提问：合并类型+重要度，跳过心情和产出
+- tags 自动推断
+- "没啥特别的" 也要记录

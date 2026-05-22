@@ -1,18 +1,16 @@
 # 工作日志采录引导
 
-你是用户的工作日志助手。通过聊天记录工作。
+通过 AskUserQuestion 逐项采集工作日志的每一列。一次问一列，用户可以跳过。
 
-**所有提问必须使用 AskUserQuestion 工具，不要输出纯文本问题。**
+**所有提问必须使用 AskUserQuestion 工具。**
 
-## Step 1: 开场
-
-调用 AskUserQuestion：
+## Step 1: 概括
 
 ```json
 {
   "questions": [{
-    "question": "来，聊聊今天的工作。一句话概括就行。",
-    "header": "工作日志",
+    "question": "来，聊聊 {date} 的工作。一句话概括就行。",
+    "header": "概括",
     "options": [
       {"label": "让我说说...", "description": "选择后输入今天的工作内容"},
       {"label": "今天就摸鱼了", "description": "没什么实质性工作"}
@@ -22,32 +20,103 @@
 }
 ```
 
-## Step 2: 追问
+提取用户回答作为 `summary`。
 
-根据用户的回答，如果信息不够丰富，追问 1 个方向。用户说 "就这些了" 立即跳到确认。
+## Step 2: 项目
 
 ```json
 {
   "questions": [{
-    "question": "{根据内容选一个追问}，比如：这个做完了还是还在推？/ 最大的卡点是什么？/ 最终产出是什么？",
-    "header": "追问",
+    "question": "哪个项目？",
+    "header": "项目",
     "options": [
-      {"label": "让我补充...", "description": "选择后输入详情"},
-      {"label": "就这些了", "description": "不用追问了"}
+      {"label": "让我输入...", "description": "输入项目名称"},
+      {"label": "跳过", "description": "不填这个"}
     ],
     "multiSelect": false
   }]
 }
 ```
 
-最多追问 2 轮。
-
-## Step 3: 确认
+## Step 3: 类型
 
 ```json
 {
   "questions": [{
-    "question": "我帮你整理了一下：\n\n📋 {summary}\n🏗️ 项目：{project}\n📂 类型：{category}\n⭐ 重要度：{impact}/5\n🎯 关键产出：{key_result}\n💼 心情：{mood}\n🏷️ 标签：{tags}\n\n确认后写入日志。",
+    "question": "工作类型是？",
+    "header": "类型",
+    "options": [
+      {"label": "开发", "description": "写代码、改bug、做功能"},
+      {"label": "会议", "description": "开会、讨论、评审会"},
+      {"label": "调研", "description": "调研方案、看文档、学习"},
+      {"label": "其他", "description": "评审/规划/运维/沟通/文档"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+用户选"其他"时通过 Other 输入具体类型。
+
+## Step 4: 重要度
+
+```json
+{
+  "questions": [{
+    "question": "今天工作的重要程度？",
+    "header": "重要度",
+    "options": [
+      {"label": "1-2 普通", "description": "日常事务，没什么特别的"},
+      {"label": "3 有推进", "description": "推进了项目进度"},
+      {"label": "4-5 关键", "description": "完成里程碑、解决关键问题"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+## Step 5: 关键产出
+
+```json
+{
+  "questions": [{
+    "question": "有没有具体的产出或成果？",
+    "header": "产出",
+    "options": [
+      {"label": "有，让我说...", "description": "输入关键产出"},
+      {"label": "没有", "description": "跳过"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+## Step 6: 心情
+
+```json
+{
+  "questions": [{
+    "question": "今天工作的心情怎么样？",
+    "header": "心情",
+    "options": [
+      {"label": "不错", "description": "开心、有成就感"},
+      {"label": "一般", "description": "平平淡淡"},
+      {"label": "有点累", "description": "疲惫、烦躁、压力大"},
+      {"label": "跳过", "description": "不想填"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+## Step 7: 确认写入
+
+汇总所有已填的列，展示给用户确认：
+
+```json
+{
+  "questions": [{
+    "question": "整理好了，确认写入？\n\n📋 {summary}\n🏗️ 项目：{project}\n📂 类型：{category}\n⭐ 重要度：{impact}/5\n🎯 产出：{key_result}\n💼 心情：{mood}\n🏷️ 标签：{tags}",
     "header": "确认",
     "options": [
       {"label": "确认写入", "description": "没问题"},
@@ -58,10 +127,8 @@
 }
 ```
 
-## 自动推断规则
+## 规则
 
-category、impact、tags 由你根据对话内容自动推断，**绝不直接问用户**：
-
-- **category**：开发/会议/调研/评审/规划/运维/沟通/文档。不确定时留空。
-- **impact**：日常=1-2，推进项目=3，里程碑=4-5。不确定时留空。
-- **tags**：从对话中提取关键词，1-5 个。
+- tags 从对话内容自动提取，不单独问
+- 用户选"跳过"的列留空
+- 所有提问用 AskUserQuestion

@@ -12,7 +12,6 @@
     "question": "嘿，{date} 过得怎么样？随便说两句就行。",
     "header": "概括",
     "options": [
-      {"label": "让我说说...", "description": "选择后输入今天的生活"},
       {"label": "没啥特别的", "description": "普通的一天"},
       {"label": "今天有点丧", "description": "心情不太好"}
     ],
@@ -49,7 +48,6 @@
     "question": "今天有没有什么亮点？",
     "header": "亮点",
     "options": [
-      {"label": "有，让我说...", "description": "输入今天的亮点"},
       {"label": "没有", "description": "跳过"}
     ],
     "multiSelect": false
@@ -65,7 +63,6 @@
     "question": "有没有什么不开心的事？",
     "header": "低谷",
     "options": [
-      {"label": "有，让我说...", "description": "输入今天的不开心"},
       {"label": "没有", "description": "跳过"}
     ],
     "multiSelect": false
@@ -81,7 +78,6 @@
     "question": "今天和谁一起？",
     "header": "人物",
     "options": [
-      {"label": "让我说...", "description": "输入一起的人"},
       {"label": "一个人", "description": "独处"},
       {"label": "跳过", "description": "不填"}
     ],
@@ -100,7 +96,6 @@
     "options": [
       {"label": "在家", "description": "宅家"},
       {"label": "公司", "description": "在公司"},
-      {"label": "让我说...", "description": "输入其他地点"},
       {"label": "跳过", "description": "不填"}
     ],
     "multiSelect": false

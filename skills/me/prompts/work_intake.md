@@ -12,7 +12,6 @@
     "question": "来，聊聊 {date} 的工作。一句话概括就行。",
     "header": "概括",
     "options": [
-      {"label": "让我说说...", "description": "选择后输入今天的工作内容"},
       {"label": "今天就摸鱼了", "description": "没什么实质性工作"}
     ],
     "multiSelect": false
@@ -30,7 +29,6 @@
     "question": "哪个项目？",
     "header": "项目",
     "options": [
-      {"label": "让我输入...", "description": "输入项目名称"},
       {"label": "跳过", "description": "不填这个"}
     ],
     "multiSelect": false
@@ -83,7 +81,6 @@
     "question": "有没有具体的产出或成果？",
     "header": "产出",
     "options": [
-      {"label": "有，让我说...", "description": "输入关键产出"},
       {"label": "没有", "description": "跳过"}
     ],
     "multiSelect": false

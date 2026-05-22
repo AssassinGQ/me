@@ -18,7 +18,6 @@
     "question": "{date}（{weekday}）那天工作上最值得记的是什么？",
     "header": "{date}",
     "options": [
-      {"label": "让我说说...", "description": "选择后输入内容"},
       {"label": "没啥特别的", "description": "普通的一天"},
       {"label": "不太记得了", "description": "回忆不起来"}
     ],
@@ -57,7 +56,6 @@
     "question": "哪个项目？",
     "header": "项目",
     "options": [
-      {"label": "让我输入...", "description": "输入项目名称"},
       {"label": "跳过", "description": "不填"}
     ],
     "multiSelect": false

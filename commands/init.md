@@ -33,7 +33,7 @@ Set `DATA_DIR` to the chosen path for all subsequent steps.
 
 ## Step 2: Check existing data
 
-If `work_log.csv`, `life_log.csv`, and `memory.md` all exist under `DATA_DIR`, tell the user:
+If `work_log.csv`, `life_log.csv`, `memory.md`, and `persona.md` all exist under `DATA_DIR`, tell the user:
 
 ```
 数据文件已存在，无需重复初始化。

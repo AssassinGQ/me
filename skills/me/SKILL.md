@@ -20,7 +20,7 @@ allowed-tools: "Read Write Edit Bash Glob Grep"
 | 命令 | 用途 | 说明 |
 |------|------|------|
 | `/me` | 能力总览 | 无参数时显示所有能力 |
-| `/me:init` | 初始化数据 | 首次使用前必须执行，创建 CSV + memory.md |
+| `/me:init` | 初始化数据 | 首次使用前必须执行，创建 CSV + memory.md + persona.md |
 | `/me:record` | 记录日志 | 工作或生活，聊天式采录 |
 | `/me:dream` | 整理记忆 | 提炼日志，合并冲突，确认后写入记忆 |
 | `/me:reflect` | 反思改进 | 发现行为模式，提出可执行建议 |
@@ -78,9 +78,10 @@ allowed-tools: "Read Write Edit Bash Glob Grep"
 | 添加新列 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/csv_manager.py --action add-column --file {log} --column {name} --default {val} --data-dir DATA_DIR` |
 | 初始化记忆 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action init --data-dir DATA_DIR` |
 | 读取记忆 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action read --data-dir DATA_DIR` |
-| 读取某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action read --section {name} --data-dir DATA_DIR` |
-| 更新某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action update-section --section {name} --content '{text}' --data-dir DATA_DIR` |
-| 追加某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action append-section --section {name} --content '{text}' --data-dir DATA_DIR` |
+| 读取画像 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action read --target-file persona --data-dir DATA_DIR` |
+| 读取某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action read --section {name} [--target-file {memory|persona}] --data-dir DATA_DIR` |
+| 更新某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action update-section --section {name} --content '{text}' [--target-file {memory|persona}] --data-dir DATA_DIR` |
+| 追加某节 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action append-section --section {name} --content '{text}' [--target-file {memory|persona}] --data-dir DATA_DIR` |
 | 提取摘要 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action extract-from-csv --file {log} --format summary --data-dir DATA_DIR` |
 | 提取模式 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action extract-from-csv --file {log} --format patterns --data-dir DATA_DIR` |
 | 高价值节点 | `python3 ${CLAUDE_PLUGIN_ROOT}/skills/me/tools/memory_manager.py --action extract-from-csv --file {log} --impact-threshold 3 --format summary --data-dir DATA_DIR` |
@@ -98,7 +99,8 @@ allowed-tools: "Read Write Edit Bash Glob Grep"
 
 - `work_log.csv` — 工作日志
 - `life_log.csv` — 生活日志
-- `memory.md` — 记忆档案（双层架构的第二层）
+- `memory.md` — 事实与模式记忆（发生了什么、有什么规律）
+- `persona.md` — 行为画像（你是什么样的人）
 - `meta.json` — Schema 定义与统计
 - `versions/` — 版本备份
 
@@ -112,13 +114,18 @@ allowed-tools: "Read Write Edit Bash Glob Grep"
 
 ### 记忆档案结构
 
-memory.md 包含 6 个节：
+双文件架构：
 
+**memory.md**（事实与模式）包含 8 个节：
 - 核心轨迹（工作时间线、生活时间线）
-- 模式识别（工作模式、生活模式、思维模式）
+- 模式识别（工作模式、生活模式、思维模式、人际关系）
+- 习惯与偏好（工作习惯、生活习惯）
 - 决策档案
 - 反思档案
 - 关注清单
+
+**persona.md**（行为画像）包含 6 个节：
+- 表达风格、情感模式、决策风格、社交模式、压力反应、自我认知
 
 ---
 

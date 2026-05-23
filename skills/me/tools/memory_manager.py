@@ -2,7 +2,7 @@
 """Memory manager for me plugin.
 
 Actions: init, read, update-section, append-section, extract-from-csv, version-info.
-Manages the memory.md file — the accumulated understanding layer built from CSV data.
+Manages memory.md (facts & patterns) and persona.md (behavioral profile).
 """
 
 import argparse
@@ -23,6 +23,7 @@ else:
 DEFAULT_DATA_DIR = SKILL_ROOT / "data"
 
 MEMORY_FILE = "memory.md"
+PERSONA_FILE = "persona.md"
 META_FILE = "meta.json"
 
 MEMORY_TEMPLATE = """# 记忆档案
@@ -40,13 +41,24 @@ MEMORY_TEMPLATE = """# 记忆档案
 ## 模式识别
 
 ### 工作模式
-<!-- 高产出触发条件、常见卡点、项目切换节奏、高效时段... -->
+<!-- 高产出触发条件、常见卡点、项目切换节奏、高效时段 -->
 
 ### 生活模式
-<!-- 情绪周期、社交偏好、作息规律、消费习惯... -->
+<!-- 情绪周期、社交偏好、作息规律、消费习惯 -->
 
 ### 思维模式
-<!-- 决策倾向：理性vs感性？果断vs犹豫？风险态度？压力反应？ -->
+<!-- 决策倾向、风险态度、压力反应、自我评价 -->
+
+### 人际关系
+<!-- 重要的人、互动模式、冲突处理方式、社交能量来源 -->
+
+## 习惯与偏好
+
+### 工作习惯
+<!-- 高效时段、工作节奏、工具偏好、注意力模式 -->
+
+### 生活习惯
+<!-- 作息、饮食、运动、消费、空间偏好 -->
 
 ## 决策档案
 <!-- 重大决策记录：情境 → 选择 → 原因 → 当前结果 -->
@@ -58,6 +70,29 @@ MEMORY_TEMPLATE = """# 记忆档案
 <!-- 用户明确说过想追踪的事 -->
 """
 
+PERSONA_TEMPLATE = """# 行为画像
+
+> 从日志中提炼的行为特征和表达习惯。不是性格测试，而是观察记录。
+
+## 表达风格
+<!-- 常用词汇、情绪表达方式、沟通偏好 -->
+
+## 情感模式
+<!-- 开心/压力/焦虑时分别怎么表现，怎么自我调节 -->
+
+## 决策风格
+<!-- 理性vs感性占比，果断vs犹豫倾向，风险偏好 -->
+
+## 社交模式
+<!-- 社交能量来源，主动性，边界感，群内角色 -->
+
+## 压力反应
+<!-- 持续压力下的行为模式，恢复方式，求助于人的倾向 -->
+
+## 自我认知
+<!-- 自我评价倾向，自信领域，敏感领域 -->
+"""
+
 
 def resolve_data_dir(data_dir=None):
     if data_dir:
@@ -65,19 +100,37 @@ def resolve_data_dir(data_dir=None):
     return DEFAULT_DATA_DIR
 
 
+def _resolve_file(data_dir, target_file):
+    """Resolve the target file path based on --target-file parameter."""
+    dd = resolve_data_dir(data_dir)
+    if target_file == "persona":
+        return dd / PERSONA_FILE
+    return dd / MEMORY_FILE
+
+
 def init_memory(data_dir=None):
     dd = resolve_data_dir(data_dir)
     dd.mkdir(parents=True, exist_ok=True)
 
+    created = []
     mem_path = dd / MEMORY_FILE
-    if mem_path.exists():
-        print(f"Memory file already exists: {mem_path}")
-        return
+    persona_path = dd / PERSONA_FILE
 
-    with open(mem_path, "w", encoding="utf-8") as f:
-        f.write(MEMORY_TEMPLATE)
+    if not mem_path.exists():
+        with open(mem_path, "w", encoding="utf-8") as f:
+            f.write(MEMORY_TEMPLATE)
+        created.append(mem_path)
+    else:
+        print(f"Already exists: {mem_path}")
 
-    # Update meta.json with memory version info
+    if not persona_path.exists():
+        with open(persona_path, "w", encoding="utf-8") as f:
+            f.write(PERSONA_TEMPLATE)
+        created.append(persona_path)
+    else:
+        print(f"Already exists: {persona_path}")
+
+    # Update meta.json with version info
     meta_path = dd / META_FILE
     if meta_path.exists():
         with open(meta_path, "r", encoding="utf-8") as f:
@@ -85,11 +138,13 @@ def init_memory(data_dir=None):
     else:
         meta = {"version": "1.0.0", "created_at": datetime.now().isoformat()}
     meta["memory_version"] = "v0"
+    meta["persona_version"] = "v0"
     meta["memory_updated_at"] = datetime.now().isoformat()
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
 
-    print(f"Created: {mem_path}")
+    for p in created:
+        print(f"Created: {p}")
 
 
 def _find_heading_level(lines, section):
@@ -110,15 +165,15 @@ def _section_heading_match(line, section, level):
     return line.strip() == f"{prefix} {section}"
 
 
-def read_memory(data_dir=None, section=None):
-    dd = resolve_data_dir(data_dir)
-    mem_path = dd / MEMORY_FILE
+def read_memory(data_dir=None, section=None, target_file="memory"):
+    file_path = _resolve_file(data_dir, target_file)
+    file_label = target_file
 
-    if not mem_path.exists():
-        print("Error: memory.md not found. Run 'init' first.")
+    if not file_path.exists():
+        print(f"Error: {file_path.name} not found. Run 'init' first.")
         sys.exit(1)
 
-    with open(mem_path, "r", encoding="utf-8") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     if section:
@@ -141,20 +196,19 @@ def read_memory(data_dir=None, section=None):
         if section_lines:
             print("\n".join(section_lines))
         else:
-            print(f"Section '{section}' not found in memory.md.")
+            print(f"Section '{section}' not found in {file_path.name}.")
     else:
         print(content)
 
 
-def update_section(section_name, new_content, data_dir=None):
-    dd = resolve_data_dir(data_dir)
-    mem_path = dd / MEMORY_FILE
+def update_section(section_name, new_content, data_dir=None, target_file="memory"):
+    file_path = _resolve_file(data_dir, target_file)
 
-    if not mem_path.exists():
-        print("Error: memory.md not found. Run 'init' first.")
+    if not file_path.exists():
+        print(f"Error: {file_path.name} not found. Run 'init' first.")
         sys.exit(1)
 
-    with open(mem_path, "r", encoding="utf-8") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     lines = content.split("\n")
@@ -187,34 +241,36 @@ def update_section(section_name, new_content, data_dir=None):
     else:
         new_lines = lines[:start_idx] + replacement
 
-    with open(mem_path, "w", encoding="utf-8") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write("\n".join(new_lines))
 
     # Update meta
+    dd = resolve_data_dir(data_dir)
     meta_path = dd / META_FILE
+    version_key = f"{target_file}_version"
     if meta_path.exists():
         with open(meta_path, "r", encoding="utf-8") as f:
             meta = json.load(f)
         meta["memory_updated_at"] = datetime.now().isoformat()
-        # Increment version
-        v = meta.get("memory_version", "v0")
+        v = meta.get(version_key, "v0")
         num = int(v.replace("v", "")) + 1
-        meta["memory_version"] = f"v{num}"
+        meta[version_key] = f"v{num}"
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2, ensure_ascii=False)
+    else:
+        num = 1
 
-    print(f"Updated section '{section_name}' in memory.md (version: v{num})")
+    print(f"Updated section '{section_name}' in {file_path.name} (version: v{num})")
 
 
-def append_section(section_name, append_content, data_dir=None):
-    dd = resolve_data_dir(data_dir)
-    mem_path = dd / MEMORY_FILE
+def append_section(section_name, append_content, data_dir=None, target_file="memory"):
+    file_path = _resolve_file(data_dir, target_file)
 
-    if not mem_path.exists():
-        print("Error: memory.md not found. Run 'init' first.")
+    if not file_path.exists():
+        print(f"Error: {file_path.name} not found. Run 'init' first.")
         sys.exit(1)
 
-    with open(mem_path, "r", encoding="utf-8") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     lines = content.split("\n")
@@ -248,10 +304,10 @@ def append_section(section_name, append_content, data_dir=None):
         insertion = [f"<!-- [追加于 {datetime.now().strftime('%Y-%m-%d')}] -->", append_content.strip()]
         new_lines = lines + [""] + insertion
 
-    with open(mem_path, "w", encoding="utf-8") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write("\n".join(new_lines))
 
-    print(f"Appended to section '{section_name}' in memory.md")
+    print(f"Appended to section '{section_name}' in {file_path.name}")
 
 
 def extract_from_csv(log_name, from_date=None, to_date=None, data_dir=None,
@@ -356,6 +412,8 @@ def main():
     parser.add_argument("--content", default=None, help="New content for update/append")
     parser.add_argument("--file", default=None, choices=["work_log", "life_log"],
                         help="CSV file for extract-from-csv")
+    parser.add_argument("--target-file", default="memory", choices=["memory", "persona"],
+                        help="Target file for read/update-section/append-section (default: memory)")
     parser.add_argument("--from", dest="from_date", default=None)
     parser.add_argument("--to", dest="to_date", default=None)
     parser.add_argument("--impact-threshold", dest="impact_threshold", default=None, type=int,
@@ -369,19 +427,19 @@ def main():
         init_memory(args.data_dir)
 
     elif args.action == "read":
-        read_memory(args.data_dir, args.section)
+        read_memory(args.data_dir, args.section, args.target_file)
 
     elif args.action == "update-section":
         if not args.section or not args.content:
             print("Error: --section and --content are required for update-section.")
             sys.exit(1)
-        update_section(args.section, args.content, args.data_dir)
+        update_section(args.section, args.content, args.data_dir, args.target_file)
 
     elif args.action == "append-section":
         if not args.section or not args.content:
             print("Error: --section and --content are required for append-section.")
             sys.exit(1)
-        append_section(args.section, args.content, args.data_dir)
+        append_section(args.section, args.content, args.data_dir, args.target_file)
 
     elif args.action == "extract-from-csv":
         if not args.file:
@@ -397,6 +455,7 @@ def main():
             with open(meta_path, "r", encoding="utf-8") as f:
                 meta = json.load(f)
             print(f"Memory version: {meta.get('memory_version', 'unknown')}")
+            print(f"Persona version: {meta.get('persona_version', 'unknown')}")
             print(f"Last updated: {meta.get('memory_updated_at', 'unknown')}")
             print(f"CSV work_log rows: {meta.get('stats', {}).get('work_log_rows', 0)}")
             print(f"CSV life_log rows: {meta.get('stats', {}).get('life_log_rows', 0)}")
